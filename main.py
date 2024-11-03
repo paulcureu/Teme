@@ -1,44 +1,37 @@
-from xmlrpc.client import boolean
+import random
 
-meniu = ['papanasi'] * 10 + ['ceafa'] * 3 + ["guias"] * 6
-preturi = [["papanasi", 7], ["ceafa", 10], ["guias", 5]]
-studenti = ["Liviu", "Ion", "George", "Ana", "Florica"]  # coada FIFO
-comenzi = ["guias", "ceafa", "ceafa", "papanasi", "ceafa"]  # coada FIFO
-tavi = ["tava"] * 7  # stiva LIFO
-istoric_comenzi = []
+cuvinte = ["python", "programare", "calculator", "date", "algoritm"]
+cuvant_de_ghicit = random.choice(cuvinte)
+progres = ["_" for _ in cuvant_de_ghicit]
 
-for comanda in range(len(comenzi)):
-    student = studenti.pop(0)
-    comanda = comenzi.pop(0)
-    tavi.pop()
-    istoric_comenzi.append(comanda)
-    print(f'{student} a comandat {comanda}')
-print(f"S-au comandat {istoric_comenzi.count('guias')} guias, {istoric_comenzi.count('ceafa')} ceafa, {istoric_comenzi.count('papanasi')} papanasi.")
-print(f"Mai sunt {tavi.count('tava')} tavi.")
-ceafa_rest = meniu.count("ceafa") - istoric_comenzi.count("ceafa")
-papanasi_rest = meniu.count("papanasi") - istoric_comenzi.count("papanasi")
-guias_rest = meniu.count("guias") - istoric_comenzi.count("guias")
-if ceafa_rest > 0:
-    ceafa_rest = True
+incercari_ramase = 6
+litere_incercate = []
+
+print(" ".join(progres))
+
+while incercari_ramase > 0 and "_" in progres:
+    litera = input("Introduceți o literă: ").lower()
+    if len(litera) != 1 or not litera.isalpha():
+        print("Te rog introdu doar o singură literă!")
+        continue
+    if litera in litere_incercate:
+        print("Ai încercat deja această literă! Încearcă altă literă.")
+        continue
+
+    litere_incercate.append(litera)
+
+    if litera in cuvant_de_ghicit:
+        for i in range(len(cuvant_de_ghicit)):
+            if cuvant_de_ghicit[i] == litera:
+                progres[i] = litera
+    else:
+        incercari_ramase -= 1
+        print(f"Încercări rămase: {incercari_ramase}")
+
+    print(" ".join(progres))
+    print(f"Încercări rămase: {incercari_ramase}")
+
+if "_" not in progres:
+    print(f"Felicitări! Ai ghicit cuvântul: {cuvant_de_ghicit}!")
 else:
-    ceafa_rest = False
-if papanasi_rest > 0:
-    papanasi_rest = True
-else:
-    papanasi_rest = False
-
-if guias_rest > 0:
-    guias_rest = True
-else:
-    guias_rest = False
-print(f'''Mai este ceafa: {ceafa_rest}
-Mai este papanasi: {papanasi_rest}
-Mai este guias: {guias_rest}''')
-
-pret_total = istoric_comenzi.count("guias") * preturi[0][1] + istoric_comenzi.count("ceafa") * preturi[1][1] + istoric_comenzi.count("papanasi") * preturi[2][1]
-print(f"Cantina a incasat: {pret_total} lei")
-produse_7 = ''
-for i in range(len(preturi)):
-    if preturi[i][1] <= 7:
-        produse_7 += f"[{preturi[i][0]},{preturi[i][1]}]"+" "
-print(f"[{produse_7[:-1]}]")
+    print(f"Ai pierdut! Cuvântul era: {cuvant_de_ghicit}")
