@@ -1,59 +1,111 @@
-import csv
 import random
-from datetime import datetime
-
-judete = {
-    "01": "Alba", "02": "Arad", "03": "Argeș", "04": "Bacău", "05": "Bihor",
-    "06": "Bistrița-Năsăud", "07": "Botoșani", "08": "Brăila", "09": "Brașov", "10": "Buzău",
-    "11": "Caraș-Severin", "12": "Cluj", "13": "Constanța", "14": "Covasna", "15": "Dâmbovița",
-    "16": "Dolj", "17": "Galați", "18": "Gorj", "19": "Harghita", "20": "Hunedoara",
-    "21": "Ialomița", "22": "Iași", "23": "Ilfov", "24": "Maramureș", "25": "Mehedinți",
-    "26": "Mureș", "27": "Neamț", "28": "Olt", "29": "Prahova", "30": "Satu Mare",
-    "31": "Sălaj", "32": "Sibiu", "33": "Suceava", "34": "Teleorman", "35": "Timiș",
-    "36": "Tulcea", "37": "Vaslui", "38": "Vâlcea", "39": "Vrancea", "40": "București",
-    "41": "București S.1", "42": "București S.2", "43": "București S.3", "44": "București S.4",
-    "45": "București S.5", "46": "București S.6", "51": "Călărași", "52": "Giurgiu"
-}
-
-prenume_masculine = ["Andrei", "Mihai", "Gabriel", "Alexandru", "Florin", "Vlad", "Cristian", "Bogdan", "Radu",
-                     "Cătălin"]
-prenume_feminine = ["Ana", "Maria", "Elena", "Ioana", "Andreea", "Cristina", "Mihaela", "Alina", "Diana", "Gabriela"]
-nume_familie = ["Popescu", "Ionescu", "Dumitrescu", "Georgescu", "Marinescu", "Radu", "Tudor", "Stan", "Dobre",
-                "Vasile"]
-
-def genereaza_cnp():
-    sex_si_secol = random.choice([1, 2, 5, 6])
-    an = random.randint(30, 99) if sex_si_secol in [1, 2] else random.randint(0, 29)
-    luna = random.randint(1, 12)
-    zi = random.randint(1, 28)
-    judet = random.choice(list(judete.keys()))
-    nnn = random.randint(100, 999)
-
-    cnp_fara_cif_control = f"{sex_si_secol}{an:02d}{luna:02d}{zi:02d}{judet}{nnn}"
-
-    # Calculăm cifra de control
-    multipli = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9]
-    suma = sum(int(cnp_fara_cif_control[i]) * multipli[i] for i in range(12))
-    cifra_control = suma % 11
-    if cifra_control == 10:
-        cifra_control = 1  # Regula specială pentru cifra 10
-
-    return cnp_fara_cif_control + str(cifra_control)
+import csv
+import time
 
 
-# 🔹 Generare 1.000.000  CNP-uri + save CSV
-numar_cnp = 1_000_000
-nume_fisier = "cnp_nume.csv"
+def calculeaza_cifra_de_control(cnp):
+    key = "279146358279"
+    total = sum(int(cnp[i]) * int(key[i]) for i in range(12))
+    rest = total % 11
+    return '1' if rest == 10 else str(rest)
 
-with open(nume_fisier, mode="w", newline='', encoding='utf-8') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(["CNP", "Nume complet"])
-    for _ in range(numar_cnp):
-        cnp = genereaza_cnp()
-        if cnp[0] in ["1", "5"]:
-            nume_complet = f"{random.choice(prenume_masculine)} {random.choice(nume_familie)}"
-        else:
-            nume_complet = f"{random.choice(prenume_feminine)} {random.choice(nume_familie)}"
-        writer.writerow([cnp, nume_complet])
+def genereaza_cnp(sex, an, luna, zi, judet, numar_ordine):
+    cnp_initial = f"{sex}{an:02d}{luna:02d}{zi:02d}{judet:02d}{numar_ordine:03d}"
+    cifra_control = calculeaza_cifra_de_control(cnp_initial)
+    return cnp_initial + cifra_control
 
-print(f"✅ Fișierul '{nume_fisier}' a fost generat cu succes!")
+def genereaza_nume():
+    lista_prenume = ["Andrei", "Maria", "Ion", "Elena", "Alexandru", "Ana", "Cristian", "Ioana"]
+    lista_nume = ["Popescu", "Ionescu", "Georgescu", "Dumitrescu", "Marinescu", "Stan", "Dobre"]
+    return random.choice(lista_prenume) + " " + random.choice(lista_nume)
+
+def generare_date_csv(nr_records=1000000, nume_fisier="cnpuri.csv"):
+    with open(nume_fisier, "w", newline="") as f:
+        writer = csv.writer(f)
+        for _ in range(nr_records):
+            sex = random.choice([1, 2])
+            an = random.randint(0, 99)
+            luna = random.randint(1, 12)
+            zi = random.randint(1, 28)
+            judet = random.randint(1, 52)
+            numar_ordine = random.randint(0, 999)
+            cnp = genereaza_cnp(sex, an, luna, zi, judet, numar_ordine)
+            nume_complet = genereaza_nume()
+            writer.writerow([cnp, nume_complet])
+    print(f"Fișierul '{nume_fisier}' a fost generat cu {nr_records} înregistrări.")
+
+
+class HashTable:
+    def __init__(self, size=1000003):
+        self.size = size
+        self.table = [[] for _ in range(size)]
+
+    def hash_function(self, key):
+        return sum(ord(c) for c in key) % self.size
+
+    # Inserarea unui element în hash table
+    def insert(self, key, value):
+        index = self.hash_function(key)
+        self.table[index].append((key, value))
+
+    def search(self, key):
+        index = self.hash_function(key)
+        iterations = 0
+        for k, v in self.table[index]:
+            iterations += 1
+            if k == key:
+                return v, iterations
+        return None, iterations
+
+
+def populare_hash_table(nume_fisier="cnpuri.csv"):
+    hash_table = HashTable()
+    with open(nume_fisier, "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            cnp, nume = row
+            hash_table.insert(cnp, nume)
+    print("Hash table-ul a fost populat.")
+    return hash_table
+
+
+def analiza_performanta(hash_table, nume_fisier="cnpuri.csv", nr_cautari=1000):
+    # Citim toate înregistrările din CSV
+    with open(nume_fisier, "r") as f:
+        data = list(csv.reader(f))
+
+    if len(data) < nr_cautari:
+        print("Nu există suficiente înregistrări pentru analiza performanței.")
+        return
+
+    sample_records = random.sample(data, nr_cautari)
+    iteratii_list = []
+    for row in sample_records:
+        cnp = row[0]
+        _, iterations = hash_table.search(cnp)
+        iteratii_list.append(iterations)
+
+    average_iterations = sum(iteratii_list) / nr_cautari
+    print(f"Media numărului de iterații pentru căutare: {average_iterations:.2f}")
+
+
+
+def main():
+    fisier_csv = "cnpuri.csv"
+    nr_records = 1000000
+    print("Încep generarea datelor...")
+    start = time.time()
+    generare_date_csv(nr_records, fisier_csv)
+    print(f"Generarea datelor a durat {time.time() - start:.2f} secunde.\n")
+
+    print("Încep popularea hash table-ului...")
+    start = time.time()
+    hash_table = populare_hash_table(fisier_csv)
+    print(f"Popularea hash table-ului a durat {time.time() - start:.2f} secunde.\n")
+
+    print("Încep analiza performanței pentru 1000 de căutări...")
+    analiza_performanta(hash_table, fisier_csv, 1000)
+
+
+if __name__ == "__main__":
+    main()
