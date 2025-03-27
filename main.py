@@ -43,7 +43,6 @@ class HashTable:
     def hash_function(self, key):
         return sum(ord(c) for c in key) % self.size
 
-    # Inserarea unui element în hash table
     def insert(self, key, value):
         index = self.hash_function(key)
         self.table[index].append((key, value))
