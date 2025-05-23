@@ -6,7 +6,6 @@ def update_data_base(data):
     with open('data-base.json', 'w') as file_update:
         json.dump(data, file_update, indent=4)
 
-
 def gaseste_rest(data_base, rest):
     bancnote = data_base["bancnote"]
     dp = [None] * (rest + 1)
